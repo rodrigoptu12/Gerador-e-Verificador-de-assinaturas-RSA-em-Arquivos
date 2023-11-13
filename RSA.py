@@ -85,6 +85,21 @@ def extended_gcd(a, b):
         d, x, y = extended_gcd(b % a, a)
         return (d, y - (b // a) * x, x)
 
+
+def Criptografa(mensagem, PublicKey):
+ 
+    n, e = PublicKey
+    # C = M^e mod n
+    C = pow(mensagem, e, n)
+    return C
+
+def Descriptografa(C, PrivateKey):
+    n, d = PrivateKey
+    # M = C^d mod n
+    M = pow(C, d, n)
+    return M
+
+
 print("Gerando p e q...")
 p, q = GetPandQ()
 # p = 43
@@ -117,69 +132,22 @@ print("Chave pública: ", PublicKey)
 PrivateKey = (n, d)
 print("Chave privada: ", PrivateKey)
 
-def Criptografa(mensagem, PublicKey):
- 
-    n, e = PublicKey
-    # C = M^e mod n
-    C = pow(mensagem, e, n)
-    return C
 
-
-def CriptografaMensagem(mensagem, PublicKey, bloco_size=4):
-    # Converte a mensagem para bytes
-    mensagem_bytes = mensagem.to_bytes((mensagem.bit_length() + 7) // 8, 'big')
-
-    # Divide a mensagem em blocos de bloco_size bytes
-    blocos = [mensagem_bytes[i:i + bloco_size] for i in range(0, len(mensagem_bytes), bloco_size)]
-
-    # Cifra cada bloco individualmente
-    cifras = [Criptografa(int.from_bytes(bloco, 'big'), PublicKey) for bloco in blocos]
-
-    return cifras
-
-def DescriptografaBloco(cifra, PrivateKey):
-    n, d = PrivateKey
-    # M = C^d mod n
-    mensagem = pow(cifra, d, n)
-    return mensagem.to_bytes((mensagem.bit_length() + 7) // 8, 'big')
-
-def DescriptografaMensagem(cifras, PrivateKey):
-    # Descriptografa cada bloco individualmente
-    blocos_descriptografados = [DescriptografaBloco(cifra, PrivateKey) for cifra in cifras]
-
-    # Concatena os blocos para reconstruir a mensagem original
-    mensagem_bytes = b"".join(blocos_descriptografados)
-
-    # Converte os bytes de volta para o formato original da mensagem
-    mensagem_original = int.from_bytes(mensagem_bytes, 'big')
-
-    return mensagem_original
-
-mensagem = "MD"
+mensagem = "Ola mundo so estou testando tudo isso e o tamanho 000000000000000000000000000000000000000 se acredita?"
 mensagem = mensagem.encode('utf-8')
 mensagem = base64.b64encode(mensagem)
 mensagem = int.from_bytes(mensagem, byteorder='big')
-# mensagem = 123456
-# mensagem = 12
+
 print ("Mensagem: ", mensagem)
 print("")
-# cifra de 4 em 4 bytes
-
-C = CriptografaMensagem(mensagem, PublicKey)
+C = Criptografa(mensagem, PublicKey)
 print("Mensagem Cifrada: ", C)
 
-def Descriptografa(C, PrivateKey):
-    n, d = PrivateKey
-    # M = C^d mod n
-    M = pow(C, d, n)
-    return M
-
-
-M = DescriptografaMensagem(C, PrivateKey)
-M = base64.b64decode(M)
-mensagem_bytes_decodificada = base64.b64decode(M)
-M = M.decode('utf-8')
-print("Mensagem Descifrada: ", M)
+mensagem = Descriptografa(C, PrivateKey)
+mensagem = mensagem.to_bytes((mensagem.bit_length() + 7) // 8, byteorder='big')
+mensagem = base64.b64decode(mensagem)
+mensagem = mensagem.decode('utf-8')
+print("Mensagem Descifrada: ", mensagem)
 
 
 
