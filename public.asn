@@ -1,0 +1,4 @@
+RSAPublicKey ::= SEQUENCE {
+             modulus           INTEGER,  -- n
+             publicExponent    INTEGER   -- e
+         }

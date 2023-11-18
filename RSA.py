@@ -3,7 +3,7 @@ import base64
 import random
 # Escolha de forma aleatória dois números primos grandes p e q, da ordem de 10^{100} no mínimo.
 
-def is_prime(n, k=5):
+def is_prime(n, k=128):
     """Testa se n é provavelmente primo usando o teste de Miller-Rabin."""
     if n == 2 or n == 3:
         return True
@@ -34,8 +34,8 @@ def GetPrime():
         p = int.from_bytes(os.urandom(128), byteorder='big')
         if is_prime(p):
             return p
-    
-def GetPandQ():    
+
+def GetPandQ():
     p = GetPrime()
     q = GetPrime()
     return p, q
@@ -87,7 +87,7 @@ def extended_gcd(a, b):
 
 
 def Criptografa(mensagem, PublicKey):
- 
+
     n, e = PublicKey
     # C = M^e mod n
     C = pow(mensagem, e, n)
@@ -100,55 +100,75 @@ def Descriptografa(C, PrivateKey):
     return M
 
 
-print("Gerando p e q...")
-p, q = GetPandQ()
-# p = 43
-# q = 59
-print("p = ", p)    
-print("q = ", q)
-
-print("Gerando n...")
-n = GetN(p, q)
-print("n = ", n)
-
-print("Gerando phi...")
-phi = GetPhi(p, q)
-print("phi = ", phi)
-
-print("Gerando e...")
-e = GetE(phi)
-# e = 11
-print("e = ", e)
-
-print("Gerando d...")
-d = GetD(e, phi)
-print("d = ", d)
-
-# Chave pública: (n, e)
-PublicKey = (n, e)
-print("Chave pública: ", PublicKey)
-
-# Chave privada: (n, d)
-PrivateKey = (n, d)
-print("Chave privada: ", PrivateKey)
-
-
-mensagem = "Ola mundo so estou testando tudo isso e o tamanho 000000000000000000000000000000000000000 se acredita?"
-mensagem = mensagem.encode('utf-8')
-mensagem = base64.b64encode(mensagem)
-mensagem = int.from_bytes(mensagem, byteorder='big')
-
-print ("Mensagem: ", mensagem)
-print("")
-C = Criptografa(mensagem, PublicKey)
-print("Mensagem Cifrada: ", C)
-
-mensagem = Descriptografa(C, PrivateKey)
-mensagem = mensagem.to_bytes((mensagem.bit_length() + 7) // 8, byteorder='big')
-mensagem = base64.b64decode(mensagem)
-mensagem = mensagem.decode('utf-8')
-print("Mensagem Descifrada: ", mensagem)
+def generate_key_pair():
+    # 1. Escolha de forma aleatória dois números primos grandes p e q, da ordem de 10^{100} no mínimo.
+    p = GetPrime()
+    q = GetPrime()
+    # 2. Calcule n = p * q
+    n = p * q
+    # 3. Calcule a função Função totiente de Euler em  n: phi(n) = (p-1)(q-1)
+    phi = (p - 1) * (q - 1)
+    # 4. Escolha um inteiro e, tal que 1 < e < phi(n), de forma que e e phi (n) sejam relativamente primos entre si.
+    # Verifique se e e phi(n) são primos entre si (ou seja, têm o máximo divisor comum igual a 1)
+    e = GetE(phi)
+    # 5. Calcule d de forma de === 1 (mod phi(n)), ou seja, d seja o inverso multiplicativo de e em mod phi(n)
+    # No passo 5 é usado o algoritmo de Euclides estendido, e o conceito de inverso multiplicativo que vem da aritmética modular
+    d = GetD(e, phi)
+    # 6. Chave pública: (n, e)
+    PublicKey = (n, e)
+    # 7. Chave privada: (n, d)
+    PrivateKey = (n, d)
+    return PublicKey, PrivateKey
 
 
 
+if __name__ == '__main__':
 
+    p, q = GetPandQ()
+
+
+    n = GetN(p, q)
+
+    phi = GetPhi(p, q)
+    e = GetE(phi)
+    d = GetD(e, phi)
+    # Chave pública: (n, e)
+    PublicKey = (n, e)
+    print("Chave pública: ", PublicKey)
+    # Chave privada: (n, d)
+    PrivateKey = (n, d)
+    print("Chave privada: ", PrivateKey)
+
+    mensagem = "Ola mundo so estou testando tudo isso e o tamanho 000000000000000000000000000000000000000 se acredita?"
+    mensagem = mensagem.encode('utf-8')
+    mensagem = base64.b64encode(mensagem)
+    print(mensagem)
+    mensagem = int.from_bytes(mensagem, byteorder='big')
+
+    print ("Mensagem: ", mensagem)
+    print("")
+
+
+
+
+    C = Criptografa(mensagem, PublicKey)
+    print("Mensagem Cifrada: ", C)
+
+    mensagem = Descriptografa(C, PrivateKey)
+    mensagem = mensagem.to_bytes((mensagem.bit_length() + 7) // 8, byteorder='big')
+    mensagem = base64.b64decode(mensagem)
+    mensagem = mensagem.decode('utf-8')
+    print("Mensagem Descifrada: ", mensagem)
+
+
+
+
+
+    # Salvar arquivo - chave pública, privada
+    def salvarChave(chave, nome):
+        with open(nome, 'w') as f:
+            #clear file
+            f.write('%d,%d' % (chave[0], chave[1]))
+
+    salvarChave(PublicKey, 'public.key')
+    salvarChave(PrivateKey, 'private.key')
