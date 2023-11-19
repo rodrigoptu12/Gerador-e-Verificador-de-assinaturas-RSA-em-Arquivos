@@ -2,6 +2,7 @@ import base64
 import hashlib
 import os
 
+
 def mgf1(seed: bytes, length: int, hash_func) -> bytes:
     """Mask generation function."""
     hLen = hash_func().digest_size
@@ -39,9 +40,8 @@ def xor_bytes(b1, b2):
 def oaep_pad(message, seed_length=512, hash_func=hashlib.sha256):
     # Parâmetros padrão: seed_length = tamanho da semente para MGF1, hash_func = função de haFsh
 
-
     # Etapa 1: Converte a mensagem em um inteiro
-    m_int = int.from_bytes(message.encode('utf-8'), 'big')
+    m_int = int.from_bytes(message.encode(), 'big')
 
     # Etapa 2: Gera a semente aleatória
     seed = os.urandom(seed_length)
@@ -50,7 +50,7 @@ def oaep_pad(message, seed_length=512, hash_func=hashlib.sha256):
     mask = mgf1(seed, len(message), hash_func)
 
     # Etapa 4: Realiza o XOR entre a mensagem e a máscara
-    masked_msg = xor_bytes(message.encode('utf-8'), mask)
+    masked_msg = xor_bytes(message.encode(), mask)
 
     # Etapa 5: Aplica MGF1 para gerar a semente invertida
     inv_mask = mgf1(masked_msg, seed_length, hash_func)
@@ -60,6 +60,7 @@ def oaep_pad(message, seed_length=512, hash_func=hashlib.sha256):
 
     # Etapa 7: Retorna a mensagem cifrada (masked_seed || masked_msg)
     return masked_seed + masked_msg
+
 
 def oaep_unpad(ciphertext, seed_length=512, hash_func=hashlib.sha256):
     # Etapa 1: Divide a mensagem cifrada em semente e mensagem
@@ -79,19 +80,20 @@ def oaep_unpad(ciphertext, seed_length=512, hash_func=hashlib.sha256):
     original_msg = xor_bytes(masked_msg, mask)
 
     # Etapa 6: Converte a mensagem para string
-    return original_msg.decode('utf-8')
+    return original_msg.decode()
+
 
 # Exemplo de uso:
 message = "Hello"
-message=message.encode().hex()
+message = message.encode().hex()
 # Cifrar
 ciphertext = oaep_pad(message)
-ciphertext_hex=ciphertext.hex()
+ciphertext_hex = ciphertext.hex()
 
 print("Mensagem Cifrada:", ciphertext_hex)
 
 # Decifrar
 decrypted_message = oaep_unpad(ciphertext)
-decrypted_message=bytes.fromhex(decrypted_message).decode()
+decrypted_message = bytes.fromhex(decrypted_message).decode()
 
 print("Mensagem Decifrada:", decrypted_message)

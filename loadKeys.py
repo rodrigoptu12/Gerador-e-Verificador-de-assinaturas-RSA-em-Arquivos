@@ -1,9 +1,10 @@
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 
+
 def load_private_key_pem(pem_data, password=None):
     private_key = serialization.load_pem_private_key(
-        pem_data.encode('utf-8'),
+        pem_data.encode(),
         password=password,
         backend=default_backend()
     )
@@ -15,6 +16,7 @@ def load_private_key_pem(pem_data, password=None):
         private_numbers.p,
         private_numbers.q
     )
+
 
 # Exemplo de uso:
 private_key_pem = """

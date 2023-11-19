@@ -1,9 +1,21 @@
-import os
 import base64
+import os
 import random
+
 # Escolha de forma aleatória dois números primos grandes p e q, da ordem de 10^{100} no mínimo.
 
-def is_prime(n, k=128):
+
+def i2osp(x: int, x_len: int = None):
+    if x_len is None:
+        x_len = (x.bit_length() + 7) // 8
+    return x.to_bytes(x_len)
+
+
+def os2ip(X):
+    return int.from_bytes(X)
+
+
+def is_prime(n: int, k=128):
     """Testa se n é provavelmente primo usando o teste de Miller-Rabin."""
     if n == 2 or n == 3:
         return True
@@ -29,56 +41,64 @@ def is_prime(n, k=128):
     return True
 
 
-def GetPrime():
+def get_prime():
     while True:
-        p = int.from_bytes(os.urandom(128), byteorder='big')
+        p = os2ip(os.urandom(128))  # 128 bytes = 1024 bits
         if is_prime(p):
             return p
 
-def GetPandQ():
-    p = GetPrime()
-    q = GetPrime()
+
+def get_pand_Q():
+    p = get_prime()
+    q = get_prime()
     return p, q
 
-def GetN(p, q):
+
+def get_n(p: int, q: int):
     return p * q
 
 # Calcule a função Função totiente de Euler em  n: phi(n) = (p-1)(q-1)
-def GetPhi(p, q):
+
+
+def get_phi(p: int, q: int):
     return (p - 1) * (q - 1)
 
-# Escolha um inteiro e, tal que 1 < e < phi(n), de forma que e e phi (n) sejam relativamente primos entre si.
-# Verifique se e e phi(n) são primos entre si (ou seja, têm o máximo divisor comum igual a 1)
 
-def MDC(a, b):
+def GCD(a, b):
     while b != 0:
         a, b = b, a % b
     return a
 
+# Escolha um inteiro e, tal que 1 < e < phi(n), de forma que e e phi (n) sejam relativamente primos entre si.
+# Verifique se e e phi(n) são primos entre si (ou seja, têm o máximo divisor comum igual a 1)
 
-def GetE(phi):
-    # calcular mdc entre e e phi
+
+def get_e(phi):
+    # calcular gcd entre e e phi
     e = 0
-    mdc = 0
+    gcd = 0
     verify = 0
-    while mdc!= 1 or verify != 1:
-        e = int.from_bytes(os.urandom(128), byteorder='big')
-        mdc = MDC(e, phi)
-        print("mdc = ", mdc)
-        if e < phi and e > 1:
+    while gcd != 1 or verify != 1:
+        e = os2ip(os.urandom(128))
+        gcd = GCD(e, phi)
+        if 1 < e and e < phi:
             verify = 1
     return e
 
 # Calcule d de forma de === 1 (mod phi(n)), ou seja, d seja o inverso multiplicativo de e em mod phi(n)
 # No passo 5 é usado o algoritmo de Euclides estendido, e o conceito de inverso multiplicativo que vem da aritmética modular
-def GetD(e, phi):
+
+
+def get_d(e: int, phi: int):
     d, x, _ = extended_gcd(e, phi)
     if d == 1:
         return x % phi
-    else:
-        raise ValueError("O inverso multiplicativo não existe para os valores fornecidos")
 
-def extended_gcd(a, b):
+    raise ValueError(
+        "O inverso multiplicativo não existe para os valores fornecidos")
+
+
+def extended_gcd(a: int, b: int):
     if a == 0:
         return (b, 0, 1)
     else:
@@ -86,52 +106,41 @@ def extended_gcd(a, b):
         return (d, y - (b // a) * x, x)
 
 
-def Criptografa(mensagem, PublicKey):
-
+def encrypt(m: int, PublicKey: tuple[int, int]):
     n, e = PublicKey
-    # C = M^e mod n
-    C = pow(mensagem, e, n)
-    return C
+    # c = m^e mod n
+    c = pow(m, e, n)
+    return c
 
-def Descriptografa(C, PrivateKey):
+
+def decrypt(c: int, PrivateKey: tuple[int, int]):
     n, d = PrivateKey
-    # M = C^d mod n
-    M = pow(C, d, n)
-    return M
+    # m = m^d mod n
+    m = pow(c, d, n)
+    return m
 
 
 def generate_key_pair():
-    # 1. Escolha de forma aleatória dois números primos grandes p e q, da ordem de 10^{100} no mínimo.
-    p = GetPrime()
-    q = GetPrime()
-    # 2. Calcule n = p * q
-    n = p * q
-    # 3. Calcule a função Função totiente de Euler em  n: phi(n) = (p-1)(q-1)
-    phi = (p - 1) * (q - 1)
-    # 4. Escolha um inteiro e, tal que 1 < e < phi(n), de forma que e e phi (n) sejam relativamente primos entre si.
-    # Verifique se e e phi(n) são primos entre si (ou seja, têm o máximo divisor comum igual a 1)
-    e = GetE(phi)
-    # 5. Calcule d de forma de === 1 (mod phi(n)), ou seja, d seja o inverso multiplicativo de e em mod phi(n)
-    # No passo 5 é usado o algoritmo de Euclides estendido, e o conceito de inverso multiplicativo que vem da aritmética modular
-    d = GetD(e, phi)
-    # 6. Chave pública: (n, e)
+    p = get_prime()
+    q = get_prime()
+    n = get_n(p, q)
+    phi = get_phi(p, q)
+    e = get_e(phi)
+    d = get_d(e, phi)
     PublicKey = (n, e)
-    # 7. Chave privada: (n, d)
     PrivateKey = (n, d)
     return PublicKey, PrivateKey
 
 
-
 if __name__ == '__main__':
 
-    p, q = GetPandQ()
+    p, q = get_pand_Q()
 
+    n = get_n(p, q)
 
-    n = GetN(p, q)
-
-    phi = GetPhi(p, q)
-    e = GetE(phi)
-    d = GetD(e, phi)
+    phi = get_phi(p, q)
+    e = get_e(phi)
+    d = get_d(e, phi)
     # Chave pública: (n, e)
     PublicKey = (n, e)
     print("Chave pública: ", PublicKey)
@@ -139,35 +148,29 @@ if __name__ == '__main__':
     PrivateKey = (n, d)
     print("Chave privada: ", PrivateKey)
 
-    mensagem = "Ola mundo so estou testando tudo isso e o tamanho 000000000000000000000000000000000000000 se acredita?"
-    mensagem = mensagem.encode('utf-8')
-    mensagem = base64.b64encode(mensagem)
-    print(mensagem)
-    mensagem = int.from_bytes(mensagem, byteorder='big')
+    message = "Ola mundo so estou testando tudo isso e o tamanho 000000000000000000000000000000000000000 se acredita?"
+    message = message.encode()
+    message = base64.b64encode(message)
+    print(message)
+    message = os2ip(message)
 
-    print ("Mensagem: ", mensagem)
+    print("Message: ", message)
     print("")
 
+    c = encrypt(message, PublicKey)
+    print("Message Cifrada: ", c)
 
-
-
-    C = Criptografa(mensagem, PublicKey)
-    print("Mensagem Cifrada: ", C)
-
-    mensagem = Descriptografa(C, PrivateKey)
-    mensagem = mensagem.to_bytes((mensagem.bit_length() + 7) // 8, byteorder='big')
-    mensagem = base64.b64decode(mensagem)
-    mensagem = mensagem.decode('utf-8')
-    print("Mensagem Descifrada: ", mensagem)
-
-
-
-
+    message = decrypt(c, PrivateKey)
+    message = i2osp(message)
+    message = base64.b64decode(message)
+    message = message.decode()
+    print("Message Descifrada: ", message)
 
     # Salvar arquivo - chave pública, privada
+
     def salvarChave(chave, nome):
         with open(nome, 'w') as f:
-            #clear file
+            # clear file
             f.write('%d,%d' % (chave[0], chave[1]))
 
     salvarChave(PublicKey, 'public.key')

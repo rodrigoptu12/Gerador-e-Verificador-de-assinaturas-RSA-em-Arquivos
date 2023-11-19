@@ -1,15 +1,17 @@
 import base64
 import hashlib
 import os
-from RSA import Criptografa, generate_key_pair
-from load_keys import load_public_key
 
-def mgf1(seed: bytes, length: int, hash_func) -> bytes:
+from load_keys import load_public_key, load_private_key
+from RSA import decrypt, encrypt, generate_key_pair, i2osp, os2ip
+
+
+def mgf1(mgf_seed: bytes, mask_len: int, hash=hashlib.sha1) -> bytes:
     """Mask generation function."""
-    hLen = hash_func().digest_size
+    hLen = hash().digest_size
     # https://www.ietf.org/rfc/rfc2437.txt
     # 1. If l > 2^32(hLen), output "mask too long" and stop.
-    if length > (hLen << 32):
+    if mask_len > (hLen << 32):
         raise ValueError("mask too long")
     # 2. Let T be the empty octet string.
     T = b""
@@ -17,74 +19,116 @@ def mgf1(seed: bytes, length: int, hash_func) -> bytes:
     # Note: \lceil{l / hLen}\rceil-1 is the number of iterations needed,
     #       but it's easier to check if we have reached the desired length.
     counter = 0
-    while len(T) < length:
+    while len(T) < mask_len:
         # a. Convert counter to an octet string C of length 4 with the primitive I2OSP: C = I2OSP (counter, 4)
-        C = int.to_bytes(counter, 4, "big")
-        # b. Concatenate the hash of the seed Z and C to the octet string T: T = T || Hash (Z || C)
-        T += hash_func(seed + C).digest()
+        C = i2osp(counter, 4)
+        # b. Concatenate the hash of the mgf_seed Z and C to the octet string T: T = T || Hash (Z || C)
+        T += hash(mgf_seed + C).digest()
         counter += 1
     # 4. Output the leading l octets of T as the octet string mask.
-    return T[:length]
+    return T[:mask_len]
 
 
-def xor_bytes(b1, b2):
-    # Função para realizar XOR entre dois bytes
-    return bytes([_a ^ _b for _a, _b in zip(b1, b2)])
+def xor(x, y):
+    return bytes(a ^ b for a, b in zip(x, y))
 
-def RSAES_OAEP_ENCRYPT(P_key, M, MGF, hash_func, L=''):
+
+def RSAES_OAEP_ENCRYPT(P_key: tuple[int, int], M: bytes, hash, MGF, L=''):
     (n, e) = P_key
-    h_len = hash_func().digest_size
-    _2H_len = 2 * h_len
+    h_len = hash().digest_size
+    _2h_len = 2 * h_len
     k = (n.bit_length() + 7) // 8
     m_len = len(M)
 
-    if m_len > (n.bit_length() - _2H_len - 2):
+    if m_len > (k - _2h_len - 2):
         raise ValueError("message too long")
 
-    if len(L) > h_len:
-        raise ValueError("label too long")
+    l_hash = hash(L.encode()).digest()
 
-    l_hash = hash_func(L.encode()).digest()
-
-    PS = b'\x00' * (k - m_len - _2H_len - 2)
+    PS = b'\x00' * (k - m_len - _2h_len - 2)
 
     DB = l_hash + PS + b'\x01' + M
 
     seed = os.urandom(h_len)
 
-    db_mask = MGF(seed, k - h_len - 1, hash_func)
+    db_mask = MGF(seed, k - h_len - 1, hash)
 
-    masked_db = xor_bytes(DB, db_mask)
+    masked_db = xor(DB, db_mask)
 
-    seed_mask = MGF(masked_db, h_len, hash_func)
+    seed_mask = MGF(masked_db, h_len, hash)
 
-    masked_seed = xor_bytes(seed, seed_mask)
+    masked_seed = xor(seed, seed_mask)
 
     EM = b'\x00' + masked_seed + masked_db
 
-    m = int.from_bytes(EM, 'big')
+    m = os2ip(EM)
 
-    c = Criptografa(m, P_key)
+    c = encrypt(m, P_key)
 
-    C = c.to_bytes((c.bit_length() + 7) // 8, byteorder='big')
+    C = i2osp(c)
 
     return C
+
+
+def RSAES_OAEP_DECRYPT(K: tuple[int, int], C: bytes, hash, MGF, L=''):
+    (n, d) = K
+    h_len = hash().digest_size
+    _2h_len = 2 * h_len
+    k = (n.bit_length() + 7) // 8
+
+    if len(C) != k or k < _2h_len + 2:
+        raise ValueError("decryption error")
+
+    c = os2ip(C)
+
+    m = decrypt(c, K)
+
+    EM = i2osp(m, k)
+
+    l_hash = hash(L.encode()).digest()
+
+    Y = EM[0]
+
+    masked_seed = EM[1:h_len + 1]
+
+    masked_db = EM[h_len + 1:]
+
+    seed_mask = MGF(masked_db, h_len, hash)
+
+    seed = xor(masked_seed, seed_mask)
+
+    db_mask = MGF(seed, k - h_len - 1, hash)
+
+    DB = xor(masked_db, db_mask)
+
+    l_hash_ = DB[:h_len]
+
+    i = h_len
+    while i < len(DB) and DB[i] == 0:
+        i += 1
+
+    if Y != 0 or l_hash != l_hash_ or i == len(DB) or DB[i] != 1:
+        raise ValueError("decryption error")
+
+    M = DB[i + 1:]
+
+    return M
 
 
 if __name__ == '__main__':
 
     with open('plaintext.txt', 'r') as f:
-        message = f.read()
-        message = message.encode('utf-8')
+        message = f.read().encode()
 
-        public_key = load_public_key('public_key.pem')
-        n = public_key.n
-        e = public_key.e
+        # public_key = load_public_key('public_key.pem')
+        # private_key = load_private_key('private_key.pem')
+        public_key, private_key = generate_key_pair()
 
-        def bytes_to_hex_string(bytes: bytes):
-            return ''.join(list(map(lambda x: f'{x:0>2x}', bytes)))
+        n, e = public_key
+        n, d = private_key
 
-        C = RSAES_OAEP_ENCRYPT((n,e), message, mgf1, hashlib.sha1)
-
-
-        print(base64.b64encode(C).decode('utf-8'))
+        C = RSAES_OAEP_ENCRYPT((n, e), message, hashlib.sha1, mgf1)
+        print(base64.b64encode(C))
+        M = RSAES_OAEP_DECRYPT((n, d), C, hashlib.sha1, mgf1)
+        m = M.decode()
+        print(m)
