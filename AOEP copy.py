@@ -127,6 +127,14 @@ if __name__ == '__main__':
         n, e = public_key
         n, d = private_key
 
+        print(n)
+        print('\n')
+        print(e)
+        print('\n')
+        print(d)
+        print('\n')
+
+
         C = RSAES_OAEP_ENCRYPT((n, e), message, hashlib.sha1, mgf1)
         print(base64.b64encode(C))
         M = RSAES_OAEP_DECRYPT((n, d), C, hashlib.sha1, mgf1)

@@ -1,19 +1,29 @@
 import base64
 
 from pyasn1.codec.der import decoder
-from pyasn1.type import univ, constraint, namedtype
 
+from pyasn1.type import univ, char, namedtype, namedval, tag, constraint, useful
+
+
+class RSAPublicKey(univ.Sequence):
+    pass
+
+
+RSAPublicKey.componentType = namedtype.NamedTypes(
+    namedtype.NamedType('modulus', univ.Integer()),
+    namedtype.NamedType('publicExponent', univ.Integer())
+)
 
 #RSAPublicKey ::= SEQUENCE {
         #      modulus           INTEGER,  -- n
         #      publicExponent    INTEGER   -- e
         #  }
 
-class RSAPublicKey(univ.Sequence):
-    componentType = namedtype.NamedTypes(
-        namedtype.NamedType('modulus', univ.Integer()),
-        namedtype.NamedType('publicExponent', univ.Integer())
-    )
+# class RSAPublicKey(univ.Sequence):
+#     componentType = namedtype.NamedTypes(
+#         namedtype.NamedType('modulus', univ.Integer()),
+#         namedtype.NamedType('publicExponent', univ.Integer())
+#     )
 
 def parse_asn1_key(asn1_key):
     decoded_key, _ = decoder.decode(asn1_key, asn1Spec=RSAPublicKey())
@@ -41,5 +51,5 @@ asn1_string = base64.b64decode(asn1_string)
 modulus, public_exponent = parse_asn1_key(asn1_string)
 
 # Exibir os valores recuperados
-# print("Modulus (n):", modulus)
-# print("Public Exponent (e):", public_exponent)
+print("Modulus (n):", modulus)
+print("Public Exponent (e):", public_exponent)
