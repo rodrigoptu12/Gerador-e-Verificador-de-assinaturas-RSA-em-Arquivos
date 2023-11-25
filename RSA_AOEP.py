@@ -1,31 +1,18 @@
-import base64
 import hashlib
 import os
-
-from load_keys import load_public_key, load_private_key
-from RSA import decrypt, encrypt, generate_key_pair, i2osp, os2ip
+from RSA import decrypt, encrypt, i2osp, os2ip
 
 
 def mgf1(mgf_seed: bytes, mask_len: int, hash=hashlib.sha1) -> bytes:
-    """Mask generation function."""
     hLen = hash().digest_size
-    # https://www.ietf.org/rfc/rfc2437.txt
-    # 1. If l > 2^32(hLen), output "mask too long" and stop.
     if mask_len > (hLen << 32):
         raise ValueError("mask too long")
-    # 2. Let T be the empty octet string.
     T = b""
-    # 3. For counter from 0 to \lceil{l / hLen}\rceil-1, do the following:
-    # Note: \lceil{l / hLen}\rceil-1 is the number of iterations needed,
-    #       but it's easier to check if we have reached the desired length.
     counter = 0
     while len(T) < mask_len:
-        # a. Convert counter to an octet string C of length 4 with the primitive I2OSP: C = I2OSP (counter, 4)
         C = i2osp(counter, 4)
-        # b. Concatenate the hash of the mgf_seed Z and C to the octet string T: T = T || Hash (Z || C)
         T += hash(mgf_seed + C).digest()
         counter += 1
-    # 4. Output the leading l octets of T as the octet string mask.
     return T[:mask_len]
 
 
@@ -33,13 +20,13 @@ def xor(x, y):
     return bytes(a ^ b for a, b in zip(x, y))
 
 
-def RSAES_OAEP_ENCRYPT(P_key: tuple[int, int], M: bytes, hash, MGF, L=''):
-    (n, e) = P_key
+def RSAES_OAEP_ENCRYPT(K: tuple[int, int], M: bytes, hash=hashlib.sha1, MGF=mgf1, L=''):
+    n = K[0]
     h_len = hash().digest_size
     _2h_len = 2 * h_len
     k = (n.bit_length() + 7) // 8
     m_len = len(M)
-
+    print(k - _2h_len - 2)
     if m_len > (k - _2h_len - 2):
         raise ValueError("message too long")
 
@@ -63,15 +50,15 @@ def RSAES_OAEP_ENCRYPT(P_key: tuple[int, int], M: bytes, hash, MGF, L=''):
 
     m = os2ip(EM)
 
-    c = encrypt(m, P_key)
+    c = encrypt(m, K)
 
     C = i2osp(c)
 
     return C
 
 
-def RSAES_OAEP_DECRYPT(K: tuple[int, int], C: bytes, hash, MGF, L=''):
-    (n, d) = K
+def RSAES_OAEP_DECRYPT(K: tuple[int, int], C: bytes, hash=hashlib.sha1, MGF=mgf1, L=''):
+    n = K[0]
     h_len = hash().digest_size
     _2h_len = 2 * h_len
     k = (n.bit_length() + 7) // 8
@@ -113,30 +100,3 @@ def RSAES_OAEP_DECRYPT(K: tuple[int, int], C: bytes, hash, MGF, L=''):
     M = DB[i + 1:]
 
     return M
-
-
-if __name__ == '__main__':
-
-    with open('plaintext.txt', 'r') as f:
-        message = f.read().encode()
-
-        # public_key = load_public_key('public_key.pem')
-        # private_key = load_private_key('private_key.pem')
-        public_key, private_key = generate_key_pair()
-
-        n, e = public_key
-        n, d = private_key
-
-        print(n)
-        print('\n')
-        print(e)
-        print('\n')
-        print(d)
-        print('\n')
-
-
-        C = RSAES_OAEP_ENCRYPT((n, e), message, hashlib.sha1, mgf1)
-        print(base64.b64encode(C))
-        M = RSAES_OAEP_DECRYPT((n, d), C, hashlib.sha1, mgf1)
-        m = M.decode()
-        print(m)

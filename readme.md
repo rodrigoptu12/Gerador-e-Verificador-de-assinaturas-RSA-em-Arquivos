@@ -1,22 +1,62 @@
-1. **Geração das Chaves RSA:**
-   - Gere dois números primos grandes \(p\) e \(q\).
-   - Calcule \(n = p \times q\).
-   - Calcule \(\phi(n) = (p-1) \times (q-1)\).
-   - Escolha um expoente público \(e\) que seja relativamente primo a \(\phi(n)\).
-   - Calcule o expoente privado \(d\) como o inverso multiplicativo de \(e\) em \(\mod \phi(n)\).
-   - A chave pública é \((n, e)\) e a chave privada é \((n, d)\).
+# Documentação do Script
 
-2. **Cifragem (Usando RSA + OAEP):**
-   - Antes de cifrar, aplique o enchimento OAEP à mensagem original.
-   - Converta a mensagem enchida em um número inteiro.
-   - Cifre o número usando a chave pública RSA: \(C = M^e \mod n\).
+## Descrição
 
-3. **Envio da Mensagem Cifrada:**
-   - Envie o valor cifrado \(C\) para o destinatário.
+Este script Python oferece funcionalidades relacionadas à criptografia RSA-AOEP, incluindo geração de chaves, criptografia, descriptografia, assinatura e verificação de assinatura.
 
-4. **Decifragem (Usando RSA + OAEP):**
-   - O destinatário recebe \(C\) e aplica a operação de decifragem RSA: \(M = C^d \mod n\).
-   - Converta o número decifrado de volta para a representação da mensagem enchida.
+## Uso
 
-5. **Remoção do OAEP:**
-   - Remova o enchimento OAEP da mensagem decifrada para obter a mensagem original.
+O script pode ser utilizado com diferentes opções, conforme as seguintes instruções:
+
+### Opções disponíveis
+
+-   **-i, (padrão: 'input.txt')**: Especifica o arquivo de entrada.
+-   **-o, (padrão: 'out.txt')**: Especifica o arquivo de saída.
+-   **-privkey**: Especifica o caminho para o arquivo contendo a chave privada.
+-   **-pubkey**: Especifica o caminho para o arquivo contendo a chave pública.
+-   **-encrypt**: Habilita a operação de criptografia.
+-   **-decrypt**: Habilita a operação de descriptografia.
+-   **-sign**: Habilita a operação de assinatura.
+-   **-verify**: Habilita a operação de verificação de assinatura.
+-   **-genkeys**: Habilita a geração de um par de chaves.
+-   **-signature (padrão: 'input.sign')**: Especifica o arquivo contendo a assinatura.
+
+### Exemplos de Uso
+
+1. **Geração de Chave:**
+
+    ````bash
+    python main.py -genkeys
+    ```
+    ````
+
+2. **Criptografia:**
+
+    ```bash
+    python main.py -i input.txt -o output.rsa -encrypt -privkey private_key.pem
+    ```
+
+3. **Descriptografia:**
+
+    ```bash
+    python main.py -i output.rsa -o output.txt -decrypt -pubkey public_key.pem
+    ```
+
+    if m_len > (k - \_2h_len - 2): # separar em blocos
+    M = [M[i:i + k - _2h_len - 2] for i in range(0, m_len, k - \_2h_len - 2)]
+    C = b''
+
+4. **Assinatura:**
+
+    ```bash
+    python main.py -i input.txt -o input.sign -sign -privkey private_key.pem
+    ```
+
+5. **Verificação de Assinatura:**
+    ```bash
+    python main.py -i input.txt -signature input.sign -verify -pubkey public_key.pem
+    ```
+
+## Dependências
+
+pip install rsa

@@ -1,8 +1,5 @@
-import base64
 import os
 import random
-
-# Escolha de forma aleatória dois números primos grandes p e q, da ordem de 10^{100} no mínimo.
 
 
 def i2osp(x: int, x_len: int = None):
@@ -57,8 +54,6 @@ def get_pand_Q():
 def get_n(p: int, q: int):
     return p * q
 
-# Calcule a função Função totiente de Euler em  n: phi(n) = (p-1)(q-1)
-
 
 def get_phi(p: int, q: int):
     return (p - 1) * (q - 1)
@@ -69,12 +64,8 @@ def GCD(a, b):
         a, b = b, a % b
     return a
 
-# Escolha um inteiro e, tal que 1 < e < phi(n), de forma que e e phi (n) sejam relativamente primos entre si.
-# Verifique se e e phi(n) são primos entre si (ou seja, têm o máximo divisor comum igual a 1)
-
 
 def get_e(phi):
-    # calcular gcd entre e e phi
     e = 0
     gcd = 0
     verify = 0
@@ -84,9 +75,6 @@ def get_e(phi):
         if 1 < e and e < phi:
             verify = 1
     return e
-
-# Calcule d de forma de === 1 (mod phi(n)), ou seja, d seja o inverso multiplicativo de e em mod phi(n)
-# No passo 5 é usado o algoritmo de Euclides estendido, e o conceito de inverso multiplicativo que vem da aritmética modular
 
 
 def get_d(e: int, phi: int):
@@ -107,14 +95,16 @@ def extended_gcd(a: int, b: int):
 
 
 def encrypt(m: int, PublicKey: tuple[int, int]):
-    n, e = PublicKey
+    n = PublicKey[0]
+    e = PublicKey[1]
     # c = m^e mod n
     c = pow(m, e, n)
     return c
 
 
 def decrypt(c: int, PrivateKey: tuple[int, int]):
-    n, d = PrivateKey
+    n = PrivateKey[0]
+    d = PrivateKey[1]
     # m = m^d mod n
     m = pow(c, d, n)
     return m
@@ -127,51 +117,6 @@ def generate_key_pair():
     phi = get_phi(p, q)
     e = get_e(phi)
     d = get_d(e, phi)
-    PublicKey = (n, e)
-    PrivateKey = (n, d)
-    return PublicKey, PrivateKey
-
-
-if __name__ == '__main__':
-
-    p, q = get_pand_Q()
-
-    n = get_n(p, q)
-
-    phi = get_phi(p, q)
-    e = get_e(phi)
-    d = get_d(e, phi)
-    # Chave pública: (n, e)
-    PublicKey = (n, e)
-    print("Chave pública: ", PublicKey)
-    # Chave privada: (n, d)
-    PrivateKey = (n, d)
-    print("Chave privada: ", PrivateKey)
-
-    message = "Ola mundo so estou testando tudo isso e o tamanho 000000000000000000000000000000000000000 se acredita?"
-    message = message.encode()
-    message = base64.b64encode(message)
-    print(message)
-    message = os2ip(message)
-
-    print("Message: ", message)
-    print("")
-
-    c = encrypt(message, PublicKey)
-    print("Message Cifrada: ", c)
-
-    message = decrypt(c, PrivateKey)
-    message = i2osp(message)
-    message = base64.b64decode(message)
-    message = message.decode()
-    print("Message Descifrada: ", message)
-
-    # Salvar arquivo - chave pública, privada
-
-    def salvarChave(chave, nome):
-        with open(nome, 'w') as f:
-            # clear file
-            f.write('%d,%d' % (chave[0], chave[1]))
-
-    salvarChave(PublicKey, 'public.key')
-    salvarChave(PrivateKey, 'private.key')
+    public_key = (n, e)
+    private_key = (n, e, d, p, q)
+    return public_key, private_key
