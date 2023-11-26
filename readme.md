@@ -26,30 +26,26 @@ O script pode ser utilizado com diferentes opções, conforme as seguintes instr
 1. **Geração de Chave:**
 
     ````bash
-    python main.py -genkeys
+    python main.py -genkey
     ```
     ````
 
 2. **Criptografia:**
 
     ```bash
-    python main.py -i input.txt -o output.rsa -encrypt -privkey private_key.pem
+    python main.py -encrypt -i input.txt -o output.rsa -privkey private_key.pem
     ```
 
 3. **Descriptografia:**
 
     ```bash
-    python main.py -i output.rsa -o output.txt -decrypt -pubkey public_key.pem
+    python main.py -decrypt -i output.rsa -o output.txt -pubkey public_key.pem
     ```
-
-    if m_len > (k - \_2h_len - 2): # separar em blocos
-    M = [M[i:i + k - _2h_len - 2] for i in range(0, m_len, k - \_2h_len - 2)]
-    C = b''
 
 4. **Assinatura:**
 
     ```bash
-    python main.py -i input.txt -o input.sign -sign -privkey private_key.pem
+    python main.py -sign -i input.txt -o input.sign -privkey private_key.pem
     ```
 
 5. **Verificação de Assinatura:**
@@ -59,4 +55,5 @@ O script pode ser utilizado com diferentes opções, conforme as seguintes instr
 
 ## Dependências
 
-pip install rsa
+    pip install rsa
+    pip install cryptography

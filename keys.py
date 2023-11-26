@@ -3,6 +3,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 import rsa
 
+
 def load_public_key(file_path):
     with open(file_path, 'r') as f:
         public_key_pem = f.read()

@@ -1,0 +1,2 @@
+- encriptação na assinatura tem que ser só RSA ou RSA com OAEP?
+- Assinatura da mensagem pode ficar separada dela?
