@@ -77,6 +77,14 @@ def get_e(phi):
     return e
 
 
+def extended_gcd(a: int, b: int):
+    if a == 0:
+        return (b, 0, 1)
+    else:
+        d, x, y = extended_gcd(b % a, a)
+        return (d, y - (b // a) * x, x)
+
+
 def get_d(e: int, phi: int):
     d, x, _ = extended_gcd(e, phi)
     if d == 1:
@@ -86,33 +94,25 @@ def get_d(e: int, phi: int):
         "O inverso multiplicativo não existe para os valores fornecidos")
 
 
-def extended_gcd(a: int, b: int):
-    if a == 0:
-        return (b, 0, 1)
-    else:
-        d, x, y = extended_gcd(b % a, a)
-        return (d, y - (b // a) * x, x)
-
-
-def encrypt(m: int, PublicKey: tuple[int, int]):
-    n = PublicKey[0]
-    e = PublicKey[1]
+def encrypt(m: int, public_key: tuple[int, int]):
+    n = public_key[0]
+    e = public_key[1]
     # c = m^e mod n
     c = pow(m, e, n)
     return c
 
 
-def decrypt(c: int, PrivateKey: tuple[int, int]):
-    n = PrivateKey[0]
-    d = PrivateKey[1]
+def decrypt(c: int, private_key: tuple[int, int]):
+    n = private_key[0]
+    d = private_key[1]
     # m = m^d mod n
     m = pow(c, d, n)
     return m
 
 
 def generate_key_pair():
-    p = get_prime()
-    q = get_prime()
+    print('Gerando chaves...')
+    p, q = get_pand_Q()
     n = get_n(p, q)
     phi = get_phi(p, q)
     e = get_e(phi)

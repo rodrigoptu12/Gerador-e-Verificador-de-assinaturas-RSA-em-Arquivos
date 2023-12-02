@@ -32,6 +32,7 @@ def RSAES_OAEP_ENCRYPT(K: tuple[int, int], M: bytes, hash=hashlib.sha1, MGF=mgf1
     C = b''
     for M in M_blocks:
         C = C + RSAES_OAEP_ENCRYPT_BLOCK(K, M, hash, MGF, L)
+
     return C
 
 
@@ -49,6 +50,7 @@ def RSAES_OAEP_ENCRYPT_BLOCK(K: tuple[int, int], M: bytes, hash=hashlib.sha1, MG
     l_hash = hash(L.encode()).digest()
 
     PS = b'\x00' * (k - m_len - _2h_len - 2)
+
     DB = l_hash + PS + b'\x01' + M
 
     db_mask = MGF(seed, k - h_len - 1, hash)

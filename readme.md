@@ -10,8 +10,8 @@ O script pode ser utilizado com diferentes opções, conforme as seguintes instr
 
 ### Opções disponíveis
 
--   **-i, (padrão: 'input.txt')**: Especifica o arquivo de entrada.
--   **-o, (padrão: 'out.txt')**: Especifica o arquivo de saída.
+-   **-i**: Especifica o arquivo de entrada.
+-   **-o**: Especifica o arquivo de saída.
 -   **-privkey**: Especifica o caminho para o arquivo contendo a chave privada.
 -   **-pubkey**: Especifica o caminho para o arquivo contendo a chave pública.
 -   **-encrypt**: Habilita a operação de criptografia.
@@ -19,16 +19,15 @@ O script pode ser utilizado com diferentes opções, conforme as seguintes instr
 -   **-sign**: Habilita a operação de assinatura.
 -   **-verify**: Habilita a operação de verificação de assinatura.
 -   **-genkeys**: Habilita a geração de um par de chaves.
--   **-signature (padrão: 'input.sign')**: Especifica o arquivo contendo a assinatura.
+-   **-signature**: Especifica o arquivo contendo a assinatura.
 
 ### Exemplos de Uso
 
 1. **Geração de Chave:**
 
-    ````bash
-    python main.py -genkey
+    ```bash
+    python main.py -genkeys
     ```
-    ````
 
 2. **Criptografia:**
 
@@ -50,7 +49,7 @@ O script pode ser utilizado com diferentes opções, conforme as seguintes instr
 
 5. **Verificação de Assinatura:**
     ```bash
-    python main.py -i input.txt -signature input.sign -verify -pubkey public_key.pem
+    python main.py -verify -i input.txt -signature input.sign -pubkey public_key.pem
     ```
 
 ## Dependências
