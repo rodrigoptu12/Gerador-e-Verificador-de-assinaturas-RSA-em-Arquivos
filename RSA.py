@@ -5,7 +5,7 @@ import random
 def i2osp(x: int, x_len: int = None):
     if x_len is None:
         x_len = (x.bit_length() + 7) // 8
-    return x.to_bytes(x_len)
+    return x.to_bytes(x_len, byteorder='big')
 
 
 def os2ip(X):
