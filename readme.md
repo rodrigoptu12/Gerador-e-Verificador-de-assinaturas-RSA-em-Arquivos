@@ -54,5 +54,5 @@ O script pode ser utilizado com diferentes opções, conforme as seguintes instr
 
 ## Dependências
 
-    pip install rsa
-    pip install cryptography
+    pip3 install rsa
+    pip3 install cryptography

@@ -9,7 +9,7 @@ def i2osp(x: int, x_len: int = None):
 
 
 def os2ip(X):
-    return int.from_bytes(X)
+    return int.from_bytes(X, byteorder='big')
 
 
 def is_prime(n: int, k=128):
