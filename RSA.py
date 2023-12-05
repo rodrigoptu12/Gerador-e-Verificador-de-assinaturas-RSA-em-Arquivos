@@ -1,5 +1,6 @@
 import os
 import random
+from typing import Tuple
 
 
 def i2osp(x: int, x_len: int = None):
@@ -94,7 +95,7 @@ def get_d(e: int, phi: int):
         "O inverso multiplicativo não existe para os valores fornecidos")
 
 
-def encrypt(m: int, public_key: tuple[int, int]):
+def encrypt(m: int, public_key: Tuple[int, int]):
     n = public_key[0]
     e = public_key[1]
     # c = m^e mod n
@@ -102,7 +103,7 @@ def encrypt(m: int, public_key: tuple[int, int]):
     return c
 
 
-def decrypt(c: int, private_key: tuple[int, int]):
+def decrypt(c: int, private_key: Tuple[int, int]):
     n = private_key[0]
     d = private_key[1]
     # m = m^d mod n

@@ -1,5 +1,6 @@
 import hashlib
 import os
+from typing import Tuple
 
 from RSA import decrypt, encrypt, i2osp, os2ip
 
@@ -21,7 +22,7 @@ def xor(x, y):
     return bytes(a ^ b for a, b in zip(x, y))
 
 
-def RSAES_OAEP_ENCRYPT(K: tuple[int, int], M: bytes, hash=hashlib.sha1, MGF=mgf1, L=''):
+def RSAES_OAEP_ENCRYPT(K: Tuple[int, int], M: bytes, hash=hashlib.sha1, MGF=mgf1, L=''):
     n = K[0]
     h_len = hash().digest_size
     _2h_len = 2 * h_len
@@ -36,7 +37,7 @@ def RSAES_OAEP_ENCRYPT(K: tuple[int, int], M: bytes, hash=hashlib.sha1, MGF=mgf1
     return C
 
 
-def RSAES_OAEP_ENCRYPT_BLOCK(K: tuple[int, int], M: bytes, hash=hashlib.sha1, MGF=mgf1, L=''):
+def RSAES_OAEP_ENCRYPT_BLOCK(K: Tuple[int, int], M: bytes, hash=hashlib.sha1, MGF=mgf1, L=''):
     n = K[0]
     h_len = hash().digest_size
     seed = os.urandom(h_len)
@@ -70,7 +71,7 @@ def RSAES_OAEP_ENCRYPT_BLOCK(K: tuple[int, int], M: bytes, hash=hashlib.sha1, MG
     return C
 
 
-def RSAES_OAEP_DECRYPT(K: tuple[int, int], C: bytes, hash=hashlib.sha1, MGF=mgf1, L=''):
+def RSAES_OAEP_DECRYPT(K: Tuple[int, int], C: bytes, hash=hashlib.sha1, MGF=mgf1, L=''):
     C_Blocks = [C[i:i + 256] for i in range(0, len(C), 256)]
     M = b''
     for C in C_Blocks:
@@ -79,7 +80,7 @@ def RSAES_OAEP_DECRYPT(K: tuple[int, int], C: bytes, hash=hashlib.sha1, MGF=mgf1
     return M
 
 
-def RSAES_OAEP_DECRYPT_BLOCK(K: tuple[int, int], C: bytes, hash=hashlib.sha1, MGF=mgf1, L=''):
+def RSAES_OAEP_DECRYPT_BLOCK(K: Tuple[int, int], C: bytes, hash=hashlib.sha1, MGF=mgf1, L=''):
     n = K[0]
     h_len = hash().digest_size
     _2h_len = 2 * h_len
