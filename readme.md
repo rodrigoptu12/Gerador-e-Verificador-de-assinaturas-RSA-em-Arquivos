@@ -6,7 +6,7 @@ Este script Python oferece funcionalidades relacionadas à criptografia RSA-AOEP
 
 ## Uso
 
-O script pode ser utilizado com diferentes opções, conforme as seguintes instruções:
+Para executar o programa, é necessário ter uma versão do python maior ou igual à 3.8.1. O script pode ser utilizado com diferentes opções, conforme as seguintes instruções:
 
 ### Opções disponíveis
 
